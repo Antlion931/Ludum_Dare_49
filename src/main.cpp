@@ -9,6 +9,8 @@
 #include "Animation.hpp"
 #include "Progresbar.hpp"
 #include "Platform.hpp"
+#include "BloodBag.hpp"
+#include "VolumeBar.hpp"
 
 enum screen
 {
@@ -19,6 +21,8 @@ enum screen
 
 int main()
 {
+    float masterVolume = 1.0f;
+
     //WINDOW
     sf::RenderWindow window(sf::VideoMode(1280, 720), "The Game", sf::Style::Close | sf::Style::Titlebar);
 
@@ -36,6 +40,12 @@ int main()
     sf::Texture terrain;
     terrain.loadFromFile("res/Free/Terrain/Terrain (16x16).png");
 
+    //BLOOD BAG TEXTURE
+    sf::Texture bloodBagTexture;
+    bloodBagTexture.loadFromFile("res/blood-bag.png");
+    sf::Music bloodBagPickUpMusic;
+    bloodBagPickUpMusic.openFromFile("res/blood-bagPickUp.wav");
+
     //PLAYER
     sf::Texture playerIdleTexture, playerRunTexture, playerJumpTexture;
 
@@ -50,7 +60,9 @@ int main()
     float x, y;
 
     //PROGRESBAR
-    Progressbar hp(10.0f, 10.0f);
+    Progressbar hp(1260.0f, 30.0f, sf::Color(100, 100, 100), sf::Color::Red);
+    hp.setPosition(10.0f, 10.0f);
+    hp.setProgress(1.0f);
 
 //======================================================================================================================
     //START
@@ -58,7 +70,7 @@ int main()
         sf::Text playButtonText;
         playButtonText.setFont(font);
         playButtonText.setCharacterSize(150);
-        playButtonText.setPosition(410.0f, 110.0f);
+        playButtonText.setPosition(410.0f, 100.0f);
         playButtonText.setString("PLAY");
 
         Button playButton(&playButtonText, sf::Color::Black, sf::Color::White, sf::Vector2f(500.0f, 200.0f));
@@ -72,7 +84,20 @@ int main()
         settingsButton.setPosition(50.0f, 570.0f);
 
     //SETTINGS
-        //TODO: VOLUME SETTINGS
+        sf::Texture backFromSettingsTexture;
+        backFromSettingsTexture.loadFromFile("res/Free/Menu/Buttons/Back.png");
+        Button backFromSettings(&backFromSettingsTexture, sf::Vector2f(100.0f, 100.0f));
+        backFromSettings.setPosition(10.0f, 10.0f);
+
+        sf::Texture volumeTexture;
+        volumeTexture.loadFromFile("res/Free/Menu/Buttons/Volume.png");
+        Button volumeTestButton(&volumeTexture, sf::Vector2f(100.0f, 100.0f));
+        volumeTestButton.setPosition(300.0f, 300.0f);
+
+        VolumeBar volumebar(660.0f, 100.0f, sf::Color(100.0f, 100.0f, 100.0f), sf::Color::White);
+        volumebar.setProgress(masterVolume);
+        volumebar.setPosition(410.0f, 300.0f);
+
 
     //1 LEVEL
         sf::IntRect level1_textureRect;
@@ -84,7 +109,7 @@ int main()
         Platform level1_platform(terrain,level1_textureRect, sf::Vector2f(50.0f, 50.0f));
         std::vector<Platform> level1_platforms;
 
-        f_input.open("bin/levels/1.txt");
+        f_input.open("bin/levels/1terrein.txt");
         while (f_input >> x >> y)
         {
             level1_platform.setPosition(x, y);
@@ -92,6 +117,18 @@ int main()
             level1_platforms.push_back(level1_platform);
         }
         f_input.close();
+
+        BloodBag level1_bloodbag(&bloodBagTexture, sf::Vector2f(32.0f, 32.0f));
+        std::vector<BloodBag> level1_bloodbags;
+
+        f_input.open("bin/levels/1bloodbags.txt");
+        while (f_input >> x >> y)
+        {
+            level1_bloodbag.setPosition(x, y);
+            level1_bloodbags.push_back(level1_bloodbag);
+        }
+        f_input.close();
+        
         
 //===============================================================================================================================    
     sf::Clock clock;
@@ -100,6 +137,7 @@ int main()
     screen screenIndex = START;
     while(window.isOpen())
     {
+        mainTheme.setVolume(masterVolume * 100);
         deltaTime = clock.restart().asSeconds();
         sf::Event evnt;
         while(window.pollEvent(evnt))
@@ -134,13 +172,22 @@ int main()
             break;
 
         case SETTINGS:
-            //TODO: VOLUME SETTINGS
+            volumebar.Draw(&window);
+            volumeTestButton.Draw(&window);
+            backFromSettings.Draw(&window);
+
+            if(backFromSettings.isButtonPush(&window))
+            {
+                screenIndex = START;
+            }
+            volumebar.Update(&window, &masterVolume);
+
+
             break;
 
         case LEVEL1: //lvl 1
 
-            sf::Vector2f direction;
-
+            hp.changeProgress(-0.1f * deltaTime);
             player.setIsOnGround(false);
             for( Platform& p : level1_platforms)
             {
@@ -153,6 +200,24 @@ int main()
                 }
 
                 p.Draw(&window);
+            }
+
+            int bloodbag_index = 0;
+            for(BloodBag& b : level1_bloodbags)
+            {
+                b.Draw(&window);
+
+                if(player.colider.CheckColison(b, false))
+                {
+                    hp.changeProgress(0.3f);
+                    level1_bloodbags.erase(level1_bloodbags.begin() + bloodbag_index);
+                    bloodBagPickUpMusic.setVolume(masterVolume * 100);
+                    bloodBagPickUpMusic.play();
+                }
+                else
+                {
+                    ++bloodbag_index;
+                }
             }
             player.Update(deltaTime);
             player.Draw(&window, deltaTime);
