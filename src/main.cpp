@@ -7,16 +7,18 @@
 #include "Player.hpp"
 #include "Colider.hpp"
 #include "Animation.hpp"
-#include "Progresbar.hpp"
+#include "Progressbar.hpp"
 #include "Platform.hpp"
 #include "BloodBag.hpp"
 #include "VolumeBar.hpp"
+#include "LevelLoader.hpp"
 
 enum screen
 {
-    START,
-    SETTINGS,
-    LEVEL1
+    START = 100,
+    SETTINGS = 101,
+    GAME = 102,
+    LEVEL0 = 0
 };
 
 int main()
@@ -32,19 +34,12 @@ int main()
     mainTheme.setLoop(true);
     mainTheme.play();
 
+    sf::Music bloodBagPickUpMusic;
+    bloodBagPickUpMusic.openFromFile("res/blood-bagPickUp.wav");
+
     //FONT
     sf::Font font;
     font.loadFromFile("res/pixel-combat-font/PixelCombat-Wajz.ttf");
-
-    //TERRAIN TEXTURE
-    sf::Texture terrain;
-    terrain.loadFromFile("res/Free/Terrain/Terrain (16x16).png");
-
-    //BLOOD BAG TEXTURE
-    sf::Texture bloodBagTexture;
-    bloodBagTexture.loadFromFile("res/blood-bag.png");
-    sf::Music bloodBagPickUpMusic;
-    bloodBagPickUpMusic.openFromFile("res/blood-bagPickUp.wav");
 
     //PLAYER
     sf::Texture playerIdleTexture, playerRunTexture, playerJumpTexture;
@@ -99,36 +94,30 @@ int main()
         volumebar.setPosition(410.0f, 300.0f);
 
 
-    //1 LEVEL
-        sf::IntRect level1_textureRect;
-        level1_textureRect.height = 16;
-        level1_textureRect.width = 16;
-        level1_textureRect.left = 0;
-        level1_textureRect.top = 0;
+    //LEVEL LOADER SET UP
 
-        Platform level1_platform(terrain,level1_textureRect, sf::Vector2f(50.0f, 50.0f));
-        std::vector<Platform> level1_platforms;
+        sf::Texture bloodBagTexture;
+        bloodBagTexture.loadFromFile("res/blood-bag.png");
+        BloodBag bloodbagSource(&bloodBagTexture, sf::Vector2f(32.0f, 32.0f));
 
-        f_input.open("bin/levels/1terrein.txt");
-        while (f_input >> x >> y)
-        {
-            level1_platform.setPosition(x, y);
-            //std::cout << x << ", " << y << std::endl;
-            level1_platforms.push_back(level1_platform);
-        }
-        f_input.close();
+        sf::Texture terrain;
+        terrain.loadFromFile("res/Free/Terrain/Terrain (16x16).png");
 
-        BloodBag level1_bloodbag(&bloodBagTexture, sf::Vector2f(32.0f, 32.0f));
-        std::vector<BloodBag> level1_bloodbags;
+        sf::IntRect platformTextureRect;
+        std::vector<Platform> platformsSource;
 
-        f_input.open("bin/levels/1bloodbags.txt");
-        while (f_input >> x >> y)
-        {
-            level1_bloodbag.setPosition(x, y);
-            level1_bloodbags.push_back(level1_bloodbag);
-        }
-        f_input.close();
-        
+        platformTextureRect.height = 16;
+        platformTextureRect.width = 16;
+        platformTextureRect.left = 0;
+        platformTextureRect.top = 0;
+        Platform platform(terrain, platformTextureRect, sf::Vector2f(50.0f, 50.0f));
+        platformsSource.push_back(platform);
+
+        std::vector<Platform> platforms;
+        std::vector<BloodBag> bloodbags;
+
+        LevelLoader levelloader(&platforms, &bloodbags, &player, &hp, platformsSource, bloodbagSource);
+
         
 //===============================================================================================================================    
     sf::Clock clock;
@@ -159,7 +148,8 @@ int main()
 
             if(playButton.isButtonPush(&window))
             {
-                screenIndex = LEVEL1; 
+                levelloader.LoadLevel(LEVEL0);
+                screenIndex = GAME; 
             }
             else if(settingsButton.isButtonPush(&window))
             {
@@ -185,11 +175,11 @@ int main()
 
             break;
 
-        case LEVEL1: //lvl 1
+        case GAME: //lvl 1
 
             hp.changeProgress(-0.1f * deltaTime);
             player.setIsOnGround(false);
-            for( Platform& p : level1_platforms)
+            for( Platform& p : platforms)
             {
 
                 player.colider.CheckColison(p, 0.0f);
@@ -203,14 +193,14 @@ int main()
             }
 
             int bloodbag_index = 0;
-            for(BloodBag& b : level1_bloodbags)
+            for(BloodBag& b : bloodbags)
             {
                 b.Draw(&window);
 
                 if(player.colider.CheckColison(b, false))
                 {
                     hp.changeProgress(0.3f);
-                    level1_bloodbags.erase(level1_bloodbags.begin() + bloodbag_index);
+                    bloodbags.erase(bloodbags.begin() + bloodbag_index);
                     bloodBagPickUpMusic.setVolume(masterVolume * 100);
                     bloodBagPickUpMusic.play();
                 }
@@ -219,6 +209,12 @@ int main()
                     ++bloodbag_index;
                 }
             }
+
+            if(hp.getProgress() == 0.0f)
+            {
+                screenIndex = START;
+            }
+
             player.Update(deltaTime);
             player.Draw(&window, deltaTime);
             hp.Draw(&window);

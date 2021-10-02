@@ -2,7 +2,7 @@
 
 #include <SFML/Graphics.hpp>
 
-#include "Progresbar.hpp"
+#include "Progressbar.hpp"
 
 class VolumeBar : public Progressbar
 {

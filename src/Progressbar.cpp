@@ -1,7 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 
-#include "Progresbar.hpp"
+#include "Progressbar.hpp"
 
 Progressbar::Progressbar(float p_x, float p_y, sf::Color backgroundColor, sf::Color fillColor)
 {

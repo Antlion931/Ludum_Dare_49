@@ -1,7 +1,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "VolumeBar.hpp"
-#include "Progresbar.hpp"
+#include "Progressbar.hpp"
 
 VolumeBar::VolumeBar(float p_x, float p_y, sf::Color backgroundColor, sf::Color fillColor)
 : Progressbar(p_x, p_y, backgroundColor, fillColor)
