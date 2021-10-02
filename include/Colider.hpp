@@ -7,7 +7,7 @@ public:
     Colider(sf::RectangleShape* p_body);
     ~Colider();
 
-    bool CheckColison(Colider& other, float push);
+    bool CheckColison(Colider& other, float push, bool move = true);
     void Move(float p_x, float p_y);
 
     sf::Vector2f GetPosition();

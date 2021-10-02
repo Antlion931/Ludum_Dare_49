@@ -43,7 +43,7 @@ int main()
     playerRunTexture.loadFromFile("res/Free/Main Characters/Virtual Guy/Run (32x32).png");
     playerJumpTexture.loadFromFile("res/Free/Main Characters/Virtual Guy/Jump (32x32).png");
 
-    Player player(&playerIdleTexture, 11, 0.1f, &playerRunTexture, 12, 0.05f, &playerJumpTexture, 1, 10.0f, 150.0f, sf::Vector2f(100.0f, 100.0f), sf::Vector2f(66.0f, 94.0f));
+    Player player(&playerIdleTexture, 11, 0.1f, &playerRunTexture, 12, 0.05f, &playerJumpTexture, 1, 10.0f, 200.0f, 150.0f, sf::Vector2f(100.0f, 100.0f), sf::Vector2f(66.0f, 94.0f));
 
     //FILE STREAM
     std::ifstream f_input;
@@ -139,13 +139,23 @@ int main()
 
         case LEVEL1: //lvl 1
 
+            sf::Vector2f direction;
+
+            player.setIsOnGround(false);
             for( Platform& p : level1_platforms)
             {
+
                 player.colider.CheckColison(p, 0.0f);
+
+                if(player.groundColider.CheckColison(p, 0.0f, false))
+                {
+                    player.setIsOnGround(true);
+                }
+
                 p.Draw(&window);
             }
             player.Update(deltaTime);
-            player.Draw(&window);
+            player.Draw(&window, deltaTime);
             hp.Draw(&window);
 
             break;
