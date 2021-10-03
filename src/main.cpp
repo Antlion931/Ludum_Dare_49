@@ -125,7 +125,7 @@ int main()
         //SPIKES
         sf::Texture spikeTexture;
         spikeTexture.loadFromFile("res/Free/Traps/Spikes/Idle.png");
-        AdvanceColider spikeSource(spikeTexture, sf::Vector2f(50.0f, 50.0f));
+        AdvanceColider spikeSource(spikeTexture, sf::Vector2f(50.0f, 50.0f), sf::Vector2f(48.0f, 20.0f), 0.0f, 15.0f);
 
         std::vector<AdvanceColider> platforms;
         std::vector<AdvanceColider> bloodbags;
