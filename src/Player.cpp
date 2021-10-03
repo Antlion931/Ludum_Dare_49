@@ -18,7 +18,7 @@ Player::Player(float p_speed, float p_jumpHeight, float p_invincibleTime, sf::Ve
     bodyColider.setPosition(bodyTexture.getPosition()); 
 
     bodyGroundColider.setFillColor(sf::Color::Red);
-    bodyGroundColider.setSize(sf::Vector2f(bodyColider.getSize().x * 0.95f, 40.0f));  
+    bodyGroundColider.setSize(sf::Vector2f(bodyColider.getSize().x * 0.95f, 30.0f));  
     bodyGroundColider.setOrigin(bodyGroundColider.getSize() / 2.0f);
     bodyGroundColider.setPosition(bodyColider.getPosition().x, bodyColider.getPosition().y + bodyColiderSize.x / 2.0f);
 
@@ -53,12 +53,17 @@ void Player::Update(float deltaTime)
         velocity.y  = -std::sqrt(2.0f * 9.81f * 100.0f * jumpHeight);
     }
 
-    if(!isOnGround)
+    velocity.y += 9.81f * 100.0f * deltaTime;
+
+    if(isOnGround && velocity.y > 0.0f)
     {
-        velocity.y += 9.81f * 100.0f * deltaTime;
+        velocity.y = 0.0f;
     }
     
+    
     invincibleTimer = std::max(0.0f, invincibleTimer - deltaTime);
+
+    //std::cout << velocity.y << std::endl;
 
     bodyColider.move(velocity * deltaTime);
     bodyGroundColider.setPosition(bodyColider.getPosition().x, bodyColider.getPosition().y + bodyColider.getSize().x / 2.0f);

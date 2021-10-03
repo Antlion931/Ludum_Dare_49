@@ -8,6 +8,7 @@
 #include "Colider.hpp"
 #include "LevelLoader.hpp"
 #include "Progressbar.hpp"
+#include "ColidersMover.hpp"
 
 LevelLoader::LevelLoader(Player* p_player, Progressbar* p_hp)
 : player(p_player), hp(p_hp), platforms(nullptr), bloodbags(nullptr), spikes(nullptr)
@@ -17,6 +18,8 @@ void LevelLoader::LoadLevel(unsigned int lvl)
 {
     bloodbags->clear();
     platforms->clear();
+    spikes->clear();
+    colidersmovers -> clear();
     player->reset();
 
     switch (lvl)
@@ -33,42 +36,96 @@ void LevelLoader::LoadLevel(unsigned int lvl)
     float x, y;
 
     //PLATFORMS
-    FileName.str("");
-    FileName << "bin/levels/" << 1 + lvl << "terrain.txt";
-
-    f_input.open(FileName.str().c_str());
-    while (f_input >> x >> y)
+    if(platforms)
     {
-        platfromsSource[lvl].setPosition(x, y);
-        platforms->push_back(platfromsSource[lvl]);
+        FileName.str("");
+        FileName << "bin/levels/" << 1 + lvl << "terrain.txt";
+
+        f_input.open(FileName.str().c_str());
+        while (f_input >> x >> y)
+        {
+            platfromsSource[lvl].setPosition(x, y);
+            platforms->push_back(platfromsSource[lvl]);
+        }
+        f_input.close();
     }
-    f_input.close();
     
     //BLOOD BAGS
-    FileName.str("");
-    std::cout << FileName.str() << std::endl;
-    FileName << "bin/levels/" << 1 + lvl << "bloodbags.txt";
-
-    f_input.open(FileName.str().c_str());
-    while (f_input >> x >> y)
+    if(bloodbags)
     {
-        bloodbagSource.setPosition(x, y);
-        bloodbags->push_back(bloodbagSource);
+        FileName.str("");
+        FileName << "bin/levels/" << 1 + lvl << "bloodbags.txt";
+
+        f_input.open(FileName.str().c_str());
+        while (f_input >> x >> y)
+        {
+            bloodbagSource.setPosition(x, y);
+            bloodbags->push_back(bloodbagSource);
+        }
+        f_input.close();
     }
-    f_input.close();
 
     //SPIKES
-    FileName.str("");
-    std::cout << FileName.str() << std::endl;
-    FileName << "bin/levels/" << 1 + lvl << "spikes.txt";
-
-    f_input.open(FileName.str().c_str());
-    while (f_input >> x >> y)
+    if(spikes)
     {
-        spikeSource.setPosition(x, y);
-        spikes->push_back(spikeSource);
+        FileName.str("");
+        FileName << "bin/levels/" << 1 + lvl << "spikes.txt";
+
+        f_input.open(FileName.str().c_str());
+        while (f_input >> x >> y)
+        {
+            spikeSource.setPosition(x, y);
+            spikes->push_back(spikeSource);
+        }
+        f_input.close();
     }
-    f_input.close();
+
+    //COLIDER MOVERS
+    if(colidersmovers)
+    {
+        FileName.str("");
+        FileName << "bin/levels/" << 1 + lvl << "colidermovers.txt";
+
+        float beginX, beginY, endX, endY, speed;
+
+        f_input.open(FileName.str().c_str());
+        while (f_input >> beginX >> beginY >> endX >> endY >> speed)
+        {
+            ColidersMover tmp(speed, sf::Vector2f(beginX, beginY), sf::Vector2f(endX, endY));
+
+            std::string type;
+            
+            while(true)
+            {
+                f_input >> type;
+                if(type == "end")
+                {
+                    break;
+                }
+
+                int index;
+                f_input >> index;
+
+                if(type == "P")
+                {
+                    tmp.add(&(*platforms)[index]);
+                }
+                else if(type == "B")
+                {
+                    tmp.add(&(*bloodbags)[index]);
+                }
+                else if(type == "S")
+                {
+                    tmp.add(&(*spikes)[index]);
+                }
+            }
+
+            colidersmovers -> push_back(tmp);
+            
+        }
+        f_input.close();
+
+    }
 
 }
 
@@ -88,4 +145,9 @@ void LevelLoader::setSpikes(AdvanceColider p_spikeSource, std::vector<AdvanceCol
 {
     spikeSource = p_spikeSource;
     spikes = p_spikes;
+}
+
+void LevelLoader::setColidersMovers(std::vector<ColidersMover>* p_colidersmovers)
+{
+    colidersmovers = p_colidersmovers;
 }

@@ -11,6 +11,7 @@
 #include "VolumeBar.hpp"
 #include "LevelLoader.hpp"
 #include "AdvanceColider.hpp"
+#include "ColidersMover.hpp"
 
 enum screen
 {
@@ -129,12 +130,14 @@ int main()
         std::vector<AdvanceColider> platforms;
         std::vector<AdvanceColider> bloodbags;
         std::vector<AdvanceColider> spikes;
+        std::vector<ColidersMover> colidersmovers;
 
         LevelLoader levelloader(&player, &hp);
 
         levelloader.setPlatforms(platformsSource, &platforms);
         levelloader.setBloodbags(bloodbagSource, &bloodbags);
         levelloader.setSpikes(spikeSource, &spikes);
+        levelloader.setColidersMovers(&colidersmovers);
 
         
 //===============================================================================================================================    
@@ -144,7 +147,7 @@ int main()
     screen screenIndex = START;
     while(window.isOpen())
     {
-        mainTheme.setVolume(masterVolume * 100);
+        mainTheme.setVolume(masterVolume * 25);
         deltaTime = clock.restart().asSeconds();
         sf::Event evnt;
         while(window.pollEvent(evnt))
@@ -198,6 +201,11 @@ int main()
             hp.changeProgress(-0.1f * deltaTime);
             player.setIsOnGround(false);
             
+            for(ColidersMover& c : colidersmovers)
+            {
+                c.Update(deltaTime);
+            }
+            
             for( AdvanceColider& p : platforms)
             {
 
@@ -226,6 +234,7 @@ int main()
                     hp.changeProgress(0.3f);
                     bloodbags.erase(bloodbags.begin() + bloodbag_index);
                     bloodBagPickUpMusic.setVolume(masterVolume * 100);
+                    bloodBagPickUpMusic.stop();
                     bloodBagPickUpMusic.play();
                 }
                 else
@@ -247,6 +256,7 @@ int main()
                     player.setInvincible();
                 }
             }
+
             
 
             if(hp.getProgress() == 0.0f)
