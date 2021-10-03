@@ -8,10 +8,9 @@
 #include "Colider.hpp"
 #include "Animation.hpp"
 #include "Progressbar.hpp"
-#include "Platform.hpp"
-#include "BloodBag.hpp"
 #include "VolumeBar.hpp"
 #include "LevelLoader.hpp"
+#include "AdvanceColider.hpp"
 
 enum screen
 {
@@ -37,6 +36,9 @@ int main()
     sf::Music bloodBagPickUpMusic;
     bloodBagPickUpMusic.openFromFile("res/blood-bagPickUp.wav");
 
+    sf::Music hurtMusic;
+    hurtMusic.openFromFile("res/hurt.wav");
+
     //FONT
     sf::Font font;
     font.loadFromFile("res/pixel-combat-font/PixelCombat-Wajz.ttf");
@@ -48,7 +50,11 @@ int main()
     playerRunTexture.loadFromFile("res/Free/Main Characters/Virtual Guy/Run (32x32).png");
     playerJumpTexture.loadFromFile("res/Free/Main Characters/Virtual Guy/Jump (32x32).png");
 
-    Player player(&playerIdleTexture, 11, 0.1f, &playerRunTexture, 12, 0.05f, &playerJumpTexture, 1, 10.0f, 200.0f, 150.0f, sf::Vector2f(100.0f, 100.0f), sf::Vector2f(66.0f, 94.0f));
+    Player player(200.0f, 150.0f, 1.0f, sf::Vector2f(100.0f, 100.0f), sf::Vector2f(66.0f, 94.0f));
+
+    player.setIdle(&playerIdleTexture, 11, 0.1f);
+    player.setRun(&playerRunTexture, 12, 0.05f);
+    player.setJump(&playerJumpTexture, 1, 10.0f);
 
     //FILE STREAM
     std::ifstream f_input;
@@ -96,27 +102,39 @@ int main()
 
     //LEVEL LOADER SET UP
 
+        //BLOOD BAGS
         sf::Texture bloodBagTexture;
         bloodBagTexture.loadFromFile("res/blood-bag.png");
-        BloodBag bloodbagSource(&bloodBagTexture, sf::Vector2f(32.0f, 32.0f));
+        AdvanceColider bloodbagSource(bloodBagTexture, sf::Vector2f(32.0f, 32.0f));
 
+        //PLATFORMS
         sf::Texture terrain;
         terrain.loadFromFile("res/Free/Terrain/Terrain (16x16).png");
 
         sf::IntRect platformTextureRect;
-        std::vector<Platform> platformsSource;
+        std::vector<AdvanceColider> platformsSource;
 
         platformTextureRect.height = 16;
         platformTextureRect.width = 16;
         platformTextureRect.left = 0;
         platformTextureRect.top = 0;
-        Platform platform(terrain, platformTextureRect, sf::Vector2f(50.0f, 50.0f));
+        AdvanceColider platform(terrain, sf::Vector2f(50.0f, 50.0f), &platformTextureRect);
         platformsSource.push_back(platform);
 
-        std::vector<Platform> platforms;
-        std::vector<BloodBag> bloodbags;
+        //SPIKES
+        sf::Texture spikeTexture;
+        spikeTexture.loadFromFile("res/Free/Traps/Spikes/Idle.png");
+        AdvanceColider spikeSource(spikeTexture, sf::Vector2f(50.0f, 50.0f));
 
-        LevelLoader levelloader(&platforms, &bloodbags, &player, &hp, platformsSource, bloodbagSource);
+        std::vector<AdvanceColider> platforms;
+        std::vector<AdvanceColider> bloodbags;
+        std::vector<AdvanceColider> spikes;
+
+        LevelLoader levelloader(&player, &hp);
+
+        levelloader.setPlatforms(platformsSource, &platforms);
+        levelloader.setBloodbags(bloodbagSource, &bloodbags);
+        levelloader.setSpikes(spikeSource, &spikes);
 
         
 //===============================================================================================================================    
@@ -179,7 +197,8 @@ int main()
 
             hp.changeProgress(-0.1f * deltaTime);
             player.setIsOnGround(false);
-            for( Platform& p : platforms)
+            
+            for( AdvanceColider& p : platforms)
             {
 
                 player.colider.CheckColison(p, 0.0f);
@@ -189,11 +208,16 @@ int main()
                     player.setIsOnGround(true);
                 }
 
+                if(player.ceilingColider.CheckColison(p, 0.0f, false))
+                {
+                    player.hitCeiling();
+                }
+
                 p.Draw(&window);
             }
 
             int bloodbag_index = 0;
-            for(BloodBag& b : bloodbags)
+            for(AdvanceColider& b : bloodbags)
             {
                 b.Draw(&window);
 
@@ -209,6 +233,21 @@ int main()
                     ++bloodbag_index;
                 }
             }
+
+            for(AdvanceColider& s : spikes)
+            {
+                s.Draw(&window);
+
+                if(!player.isInvincible() && player.colider.CheckColison(s, false))
+                {
+                    hurtMusic.setVolume(masterVolume * 100);
+                    hurtMusic.stop();
+                    hurtMusic.play();
+                    hp.changeProgress(-0.2f);
+                    player.setInvincible();
+                }
+            }
+            
 
             if(hp.getProgress() == 0.0f)
             {

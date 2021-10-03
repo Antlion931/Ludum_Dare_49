@@ -4,12 +4,12 @@
 
 #include "Colider.hpp"
 
-class Platform : public Colider
+class AdvanceColider : public Colider
 {
 public:
-    Platform(sf::Texture& texture, sf::IntRect& textureRect, sf::Vector2f size);
-    Platform(const Platform& p);
-
+    AdvanceColider(sf::Texture& texture, sf::Vector2f size, sf::IntRect* textureRect = nullptr);
+    AdvanceColider(const AdvanceColider& p);
+    AdvanceColider();
     
     void Draw(sf::RenderWindow* window);
     void setPosition(float x, float y);

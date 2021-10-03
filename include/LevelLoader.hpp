@@ -4,26 +4,31 @@
 #include <iostream>
 
 #include "Player.hpp"
-#include "Platform.hpp"
-#include "BloodBag.hpp"
+#include "AdvanceColider.hpp"
 #include "Colider.hpp"
 #include "Progressbar.hpp"
 
 class LevelLoader
 {
 public:
-    LevelLoader(std::vector<Platform>* p_platforms, std::vector<BloodBag>* p_bloodbags, Player* p_player, Progressbar* p_hp,  std::vector<Platform> p_platfromsSource, BloodBag p_bloodbagSource);
+    LevelLoader(Player* p_player, Progressbar* p_hp);
 
     void LoadLevel(unsigned int lvl);
+    void setPlatforms( std::vector<AdvanceColider> p_platfromsSource, std::vector<AdvanceColider>* p_platforms);
+    void setBloodbags(AdvanceColider p_bloodbagSource, std::vector<AdvanceColider>* p_bloodbags);
+    void setSpikes(AdvanceColider p_spikeSource, std::vector<AdvanceColider>* p_spikes);
 private:
-    std::vector<Platform>* platforms;
-    std::vector<BloodBag>* bloodbags;
-    std::vector<Platform> platfromsSource;
-    BloodBag bloodbagSource;
-
     Player* player;
-
     Progressbar* hp;
+
+    std::vector<AdvanceColider> platfromsSource;
+    std::vector<AdvanceColider>* platforms;
+
+    AdvanceColider bloodbagSource;
+    std::vector<AdvanceColider>* bloodbags;
+
+    AdvanceColider spikeSource;
+    std::vector<AdvanceColider>* spikes;
     
 
 };

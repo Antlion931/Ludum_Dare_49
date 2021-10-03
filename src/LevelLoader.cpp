@@ -5,21 +5,19 @@
 #include <fstream>
 
 #include "Player.hpp"
-#include "Platform.hpp"
-#include "BloodBag.hpp"
 #include "Colider.hpp"
 #include "LevelLoader.hpp"
 #include "Progressbar.hpp"
 
-LevelLoader::LevelLoader(std::vector<Platform>* p_platforms, std::vector<BloodBag>* p_bloodbags, 
-                         Player* p_player, Progressbar* p_hp, std::vector<Platform> p_platfromsSource, BloodBag p_bloodbagSource)
-: platforms(p_platforms), bloodbags(p_bloodbags), player(p_player), hp(p_hp), platfromsSource(p_platfromsSource), bloodbagSource(p_bloodbagSource)
+LevelLoader::LevelLoader(Player* p_player, Progressbar* p_hp)
+: player(p_player), hp(p_hp), platforms(nullptr), bloodbags(nullptr), spikes(nullptr)
 {}
 
 void LevelLoader::LoadLevel(unsigned int lvl)
 {
     bloodbags->clear();
     platforms->clear();
+    player->reset();
 
     switch (lvl)
     {
@@ -31,12 +29,14 @@ void LevelLoader::LoadLevel(unsigned int lvl)
 
 
     std::ifstream f_input;
+    std::stringstream FileName;
     float x, y;
 
-    std::stringstream terrainFileName;
-    terrainFileName << "bin/levels/" << 1 + lvl << "terrain.txt";
+    //PLATFORMS
+    FileName.str("");
+    FileName << "bin/levels/" << 1 + lvl << "terrain.txt";
 
-    f_input.open(terrainFileName.str().c_str());
+    f_input.open(FileName.str().c_str());
     while (f_input >> x >> y)
     {
         platfromsSource[lvl].setPosition(x, y);
@@ -44,15 +44,48 @@ void LevelLoader::LoadLevel(unsigned int lvl)
     }
     f_input.close();
     
+    //BLOOD BAGS
+    FileName.str("");
+    std::cout << FileName.str() << std::endl;
+    FileName << "bin/levels/" << 1 + lvl << "bloodbags.txt";
 
-    std::stringstream bloodbagFileName;
-    bloodbagFileName << "bin/levels/" << 1 + lvl << "bloodbags.txt";
-
-    f_input.open(bloodbagFileName.str().c_str());
+    f_input.open(FileName.str().c_str());
     while (f_input >> x >> y)
     {
         bloodbagSource.setPosition(x, y);
         bloodbags->push_back(bloodbagSource);
     }
     f_input.close();
+
+    //SPIKES
+    FileName.str("");
+    std::cout << FileName.str() << std::endl;
+    FileName << "bin/levels/" << 1 + lvl << "spikes.txt";
+
+    f_input.open(FileName.str().c_str());
+    while (f_input >> x >> y)
+    {
+        spikeSource.setPosition(x, y);
+        spikes->push_back(spikeSource);
+    }
+    f_input.close();
+
+}
+
+void LevelLoader::setPlatforms( std::vector<AdvanceColider> p_platfromsSource, std::vector<AdvanceColider>* p_platforms)
+{
+    platfromsSource = p_platfromsSource;
+    platforms = p_platforms;
+}
+
+void LevelLoader::setBloodbags(AdvanceColider p_bloodbagSource, std::vector<AdvanceColider>* p_bloodbags)
+{
+    bloodbagSource = p_bloodbagSource;
+    bloodbags = p_bloodbags;
+}
+
+void LevelLoader::setSpikes(AdvanceColider p_spikeSource, std::vector<AdvanceColider>* p_spikes)
+{
+    spikeSource = p_spikeSource;
+    spikes = p_spikes;
 }

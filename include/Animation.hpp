@@ -5,6 +5,7 @@ class Animation
 {
 public:
     Animation(sf::Texture* p_texture, unsigned int p_imageCount, float p_switchTime);
+    Animation();
     ~Animation();
 
     sf::IntRect uvRect;
