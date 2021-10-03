@@ -11,7 +11,7 @@
 #include "ColidersMover.hpp"
 
 LevelLoader::LevelLoader(Player* p_player, Progressbar* p_hp)
-: player(p_player), hp(p_hp), platforms(nullptr), bloodbags(nullptr), spikes(nullptr)
+: player(p_player), hp(p_hp), platforms(nullptr), bloodbags(nullptr), spikes(nullptr), saws(nullptr)
 {}
 
 void LevelLoader::LoadLevel(unsigned int lvl)
@@ -19,6 +19,7 @@ void LevelLoader::LoadLevel(unsigned int lvl)
     bloodbags->clear();
     platforms->clear();
     spikes->clear();
+    saws -> clear();
     colidersmovers -> clear();
     player->reset();
 
@@ -80,6 +81,21 @@ void LevelLoader::LoadLevel(unsigned int lvl)
         f_input.close();
     }
 
+    //SAWS
+    if(saws)
+    {
+        FileName.str("");
+        FileName << "bin/levels/" << 1 + lvl << "saws.txt";
+
+        f_input.open(FileName.str().c_str());
+        while (f_input >> x >> y)
+        {
+            sawSource.setPosition(x, y);
+            saws->push_back(sawSource);
+        }
+        f_input.close();
+    }
+
     //COLIDER MOVERS
     if(colidersmovers)
     {
@@ -114,9 +130,13 @@ void LevelLoader::LoadLevel(unsigned int lvl)
                 {
                     tmp.add(&(*bloodbags)[index]);
                 }
-                else if(type == "S")
+                else if(type == "Sp")
                 {
                     tmp.add(&(*spikes)[index]);
+                }
+                else if(type == "Sa")
+                {
+                    tmp.add(&(*saws)[index]);
                 }
             }
 
@@ -150,4 +170,10 @@ void LevelLoader::setSpikes(AdvanceColider p_spikeSource, std::vector<AdvanceCol
 void LevelLoader::setColidersMovers(std::vector<ColidersMover>* p_colidersmovers)
 {
     colidersmovers = p_colidersmovers;
+}
+
+void LevelLoader::setSaws(AdvanceColider p_sawSource, std::vector<AdvanceColider>* p_saws)
+{
+    sawSource = p_sawSource;
+    saws = p_saws;
 }

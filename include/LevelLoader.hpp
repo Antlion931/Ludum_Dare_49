@@ -18,6 +18,7 @@ public:
     void setPlatforms( std::vector<AdvanceColider> p_platfromsSource, std::vector<AdvanceColider>* p_platforms);
     void setBloodbags(AdvanceColider p_bloodbagSource, std::vector<AdvanceColider>* p_bloodbags);
     void setSpikes(AdvanceColider p_spikeSource, std::vector<AdvanceColider>* p_spikes);
+    void setSaws(AdvanceColider p_sawSource, std::vector<AdvanceColider>* p_saws);
     void setColidersMovers(std::vector<ColidersMover>* p_colidersmovers);
     
 private:
@@ -33,6 +34,10 @@ private:
     AdvanceColider spikeSource;
     std::vector<AdvanceColider>* spikes;
 
+    AdvanceColider sawSource;
+    std::vector<AdvanceColider>* saws;
+
     std::vector<ColidersMover>* colidersmovers;
+
     
 };

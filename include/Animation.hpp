@@ -11,7 +11,7 @@ public:
     sf::IntRect uvRect;
     sf::Texture *texture;
 
-    void Update(float deltaTime, bool faceRight);
+    void Update(float deltaTime, bool faceRight = true);
 
 private:
     unsigned int imageCount;

@@ -127,9 +127,15 @@ int main()
         spikeTexture.loadFromFile("res/Free/Traps/Spikes/Idle.png");
         AdvanceColider spikeSource(spikeTexture, sf::Vector2f(50.0f, 50.0f), sf::Vector2f(48.0f, 20.0f), 0.0f, 15.0f);
 
+        //SAWS
+        sf::Texture sawTexture;
+        sawTexture.loadFromFile("res/Free/Traps/Saw/On (38x38).png");
+        AdvanceColider sawSource(sawTexture, 8, 0.01f, sf::Vector2f(50.0f, 50.0f));
+
         std::vector<AdvanceColider> platforms;
         std::vector<AdvanceColider> bloodbags;
         std::vector<AdvanceColider> spikes;
+        std::vector<AdvanceColider> saws;
         std::vector<ColidersMover> colidersmovers;
 
         LevelLoader levelloader(&player, &hp);
@@ -137,6 +143,7 @@ int main()
         levelloader.setPlatforms(platformsSource, &platforms);
         levelloader.setBloodbags(bloodbagSource, &bloodbags);
         levelloader.setSpikes(spikeSource, &spikes);
+        levelloader.setSaws(sawSource, &saws);
         levelloader.setColidersMovers(&colidersmovers);
 
         
@@ -221,13 +228,13 @@ int main()
                     player.hitCeiling();
                 }
 
-                p.Draw(&window);
+                p.Draw(&window, deltaTime);
             }
 
             int bloodbag_index = 0;
             for(AdvanceColider& b : bloodbags)
             {
-                b.Draw(&window);
+                b.Draw(&window, deltaTime);
 
                 if(player.colider.CheckColison(b, false))
                 {
@@ -245,7 +252,7 @@ int main()
 
             for(AdvanceColider& s : spikes)
             {
-                s.Draw(&window);
+                s.Draw(&window, deltaTime);
 
                 if(!player.isInvincible() && player.colider.CheckColison(s, false))
                 {
@@ -257,7 +264,19 @@ int main()
                 }
             }
 
-            
+            for(AdvanceColider& s : saws)
+            {
+                s.Draw(&window, deltaTime);
+
+                if(!player.isInvincible() && player.colider.CheckColison(s, false))
+                {
+                    hurtMusic.setVolume(masterVolume * 100);
+                    hurtMusic.stop();
+                    hurtMusic.play();
+                    hp.changeProgress(-0.2f);
+                    player.setInvincible();
+                }
+            }
 
             if(hp.getProgress() == 0.0f)
             {
