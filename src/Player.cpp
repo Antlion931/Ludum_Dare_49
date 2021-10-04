@@ -18,12 +18,12 @@ Player::Player(float p_speed, float p_jumpHeight, float p_invincibleTime, sf::Ve
     bodyColider.setPosition(bodyTexture.getPosition()); 
 
     bodyGroundColider.setFillColor(sf::Color::Red);
-    bodyGroundColider.setSize(sf::Vector2f(bodyColider.getSize().x * 0.95f, 30.0f));  
+    bodyGroundColider.setSize(sf::Vector2f(bodyColider.getSize().x * 0.95f, 20.0f));  
     bodyGroundColider.setOrigin(bodyGroundColider.getSize() / 2.0f);
     bodyGroundColider.setPosition(bodyColider.getPosition().x, bodyColider.getPosition().y + bodyColiderSize.x / 2.0f);
 
     bodyCeilingColider.setFillColor(sf::Color::Blue);
-    bodyCeilingColider.setSize(sf::Vector2f(bodyColider.getSize().x * 0.95f, 30.0f)); 
+    bodyCeilingColider.setSize(sf::Vector2f(bodyColider.getSize().x * 0.95f, 20.0f)); 
     bodyCeilingColider.setOrigin(bodyCeilingColider.getSize() / 2.0f);
     bodyCeilingColider.setPosition(bodyColider.getPosition().x, bodyColider.getPosition().y - bodyColiderSize.x / 2.0f);
 }

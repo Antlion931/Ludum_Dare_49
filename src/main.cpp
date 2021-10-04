@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 
@@ -12,13 +13,25 @@
 #include "LevelLoader.hpp"
 #include "AdvanceColider.hpp"
 #include "ColidersMover.hpp"
+#include "SaveManager.hpp"
 
 enum screen
 {
-    START = 100,
-    SETTINGS = 101,
-    GAME = 102,
-    LEVEL0 = 0
+    START,
+    SETTINGS,
+    LEVELS,
+    GAME
+};
+
+enum lvl
+{
+    LEVEL1 = 0,
+    LEVEL2,
+    LEVEL3,
+    LEVEL4,
+    LEVEL5,
+    LEVEL6,
+    LEVEL7
 };
 
 int main()
@@ -26,7 +39,7 @@ int main()
     float masterVolume = 1.0f;
 
     //WINDOW
-    sf::RenderWindow window(sf::VideoMode(1280, 720), "The Game", sf::Style::Close | sf::Style::Titlebar);
+    sf::RenderWindow window(sf::VideoMode(1300, 720), "The Game", sf::Style::Close | sf::Style::Titlebar);
 
     //MUSIC
     sf::Music mainTheme;
@@ -47,6 +60,9 @@ int main()
     sf::Font font;
     font.loadFromFile("res/pixel-combat-font/PixelCombat-Wajz.ttf");
 
+    //SAVER MANAGER
+    SaveManager saveManager;
+
     //PLAYER
     sf::Texture playerIdleTexture, playerRunTexture, playerJumpTexture;
 
@@ -54,19 +70,24 @@ int main()
     playerRunTexture.loadFromFile("res/Free/Main Characters/Virtual Guy/Run (32x32).png");
     playerJumpTexture.loadFromFile("res/Free/Main Characters/Virtual Guy/Jump (32x32).png");
 
-    Player player(200.0f, 150.0f, 1.0f, sf::Vector2f(100.0f, 100.0f), sf::Vector2f(66.0f, 94.0f));
+    Player player(200.0f, 175.0f, 1.0f, sf::Vector2f(50.0f, 50.0f), sf::Vector2f(33.0f, 47.0f));
 
     player.setIdle(&playerIdleTexture, 11, 0.1f);
     player.setRun(&playerRunTexture, 12, 0.05f);
     player.setJump(&playerJumpTexture, 1, 10.0f);
+
+    //FINISH
+    sf::Texture finishtexture;
+    finishtexture.loadFromFile("res/Free/Items/Checkpoints/End/End (Idle).png");
+    AdvanceColider finish(finishtexture, sf::Vector2f(100.0f, 100.0f), sf::Vector2f(60.0f, 60.0f));
 
     //FILE STREAM
     std::ifstream f_input;
     float x, y;
 
     //PROGRESBAR
-    Progressbar hp(1260.0f, 30.0f, sf::Color(100, 100, 100), sf::Color::Red);
-    hp.setPosition(10.0f, 10.0f);
+    Progressbar hp(1300.0f, 70.0f, sf::Color(100, 100, 100), sf::Color::Red);
+    hp.setPosition(0.0f, 0.0f);
     hp.setProgress(1.0f);
 
 //======================================================================================================================
@@ -89,6 +110,16 @@ int main()
         settingsButton.setPosition(50.0f, 570.0f);
 
     //SETTINGS
+
+        sf::Text resetButtonText;
+        resetButtonText.setFont(font);
+        resetButtonText.setCharacterSize(50);
+        resetButtonText.setPosition(310.0f, 120.0f);
+        resetButtonText.setString("RESET ALL PROGRESS");
+
+        Button resetButton(&resetButtonText, sf::Color::Black, sf::Color::White, sf::Vector2f(700.0f, 100.0f));
+        resetButton.setPosition(300.0f, 100.0f);
+
         sf::Texture backFromSettingsTexture;
         backFromSettingsTexture.loadFromFile("res/Free/Menu/Buttons/Back.png");
         Button backFromSettings(&backFromSettingsTexture, sf::Vector2f(100.0f, 100.0f));
@@ -104,6 +135,65 @@ int main()
         volumebar.setPosition(410.0f, 300.0f);
 
 
+    //LEVELS
+        sf::Text levelsText;
+        levelsText.setFont(font);
+        levelsText.setCharacterSize(27);
+        levelsText.setString("You are playing as unstable patient after car accident,\n" 
+                             "your task is to don't bleed out and complite all levels,\n" 
+                             "sometimes you will have to go back to previous levels,\n"
+                             "to save more blood for next levels.\n"
+                             "A - go left\n"
+                             "D - go right\n"
+                             "W - jump\n"
+                             "R - quick reset\n");
+        levelsText.setPosition(180.0f, 10.0f);
+
+        sf::Text score;
+        score.setFont(font);
+        score.setCharacterSize(30);
+        score.setPosition(50.0f, 470.0f);
+
+        sf::Text win;
+        win.setFont(font);
+        win.setCharacterSize(30);
+        win.setPosition(700.0f, 470.0f);
+        win.setString("YOU WIN!");
+
+
+
+        sf::Texture level1Texture;
+        level1Texture.loadFromFile("res/Free/Menu/Levels/01.png");
+        Button level1Button(&level1Texture, sf::Vector2f(100.0f, 100.0f));
+        level1Button.setPosition(50.0f, 500.0f);
+
+        Progressbar level1Hp(100.0f, 10.0f, sf::Color(100, 100, 100), sf::Color::Red);
+        level1Hp.setPosition(50.0f, 610.0f);
+
+        sf::Texture level2Texture;
+        level2Texture.loadFromFile("res/Free/Menu/Levels/02.png");
+        Button level2Button(&level2Texture, sf::Vector2f(100.0f, 100.0f));
+        level2Button.setPosition(250.0f, 500.0f);
+
+        Progressbar level2Hp(100.0f, 10.0f, sf::Color(100, 100, 100), sf::Color::Red);
+        level2Hp.setPosition(250.0f, 610.0f);
+
+        sf::Texture level3Texture;
+        level3Texture.loadFromFile("res/Free/Menu/Levels/03.png");
+        Button level3Button(&level3Texture, sf::Vector2f(100.0f, 100.0f));
+        level3Button.setPosition(450.0f, 500.0f);
+
+        Progressbar level3Hp(100.0f, 10.0f, sf::Color(100, 100, 100), sf::Color::Red);
+        level3Hp.setPosition(450.0f, 610.0f);
+
+        sf::Texture level4Texture;
+        level4Texture.loadFromFile("res/Free/Menu/Levels/04.png");
+        Button level4Button(&level4Texture, sf::Vector2f(100.0f, 100.0f));
+        level4Button.setPosition(650.0f, 500.0f);
+
+        Progressbar level4Hp(100.0f, 10.0f, sf::Color(100, 100, 100), sf::Color::Red);
+        level4Hp.setPosition(650.0f, 610.0f);
+
     //LEVEL LOADER SET UP
 
         //BLOOD BAGS
@@ -118,12 +208,54 @@ int main()
         sf::IntRect platformTextureRect;
         std::vector<AdvanceColider> platformsSource;
 
-        platformTextureRect.height = 16;
-        platformTextureRect.width = 16;
+        platformTextureRect.height = 48;
+        platformTextureRect.width = 48;
+        platformTextureRect.left = 96;
+        platformTextureRect.top = 0;
+        AdvanceColider lvl1(terrain, sf::Vector2f(50.0f, 50.0f), &platformTextureRect);
+        platformsSource.push_back(lvl1);
+
+        platformTextureRect.height = 48;
+        platformTextureRect.width = 48;
+        platformTextureRect.left = 96;
+        platformTextureRect.top = 48 + 16;
+        AdvanceColider lvl2(terrain, sf::Vector2f(50.0f, 50.0f), &platformTextureRect);
+        platformsSource.push_back(lvl2);
+
+        platformTextureRect.height = 48;
+        platformTextureRect.width = 48;
+        platformTextureRect.left = 96;
+        platformTextureRect.top = 96 + 32;
+        AdvanceColider lvl3(terrain, sf::Vector2f(50.0f, 50.0f), &platformTextureRect);
+        platformsSource.push_back(lvl3);
+
+        platformTextureRect.height = 48;
+        platformTextureRect.width = 48;
         platformTextureRect.left = 0;
         platformTextureRect.top = 0;
-        AdvanceColider platform(terrain, sf::Vector2f(50.0f, 50.0f), &platformTextureRect);
-        platformsSource.push_back(platform);
+        AdvanceColider lvl4(terrain, sf::Vector2f(50.0f, 50.0f), &platformTextureRect);
+        platformsSource.push_back(lvl4);
+
+        platformTextureRect.height = 48;
+        platformTextureRect.width = 48;
+        platformTextureRect.left = 0;
+        platformTextureRect.top = 48 + 16;
+        AdvanceColider lvl5(terrain, sf::Vector2f(50.0f, 50.0f), &platformTextureRect);
+        platformsSource.push_back(lvl5);
+
+        platformTextureRect.height = 48;
+        platformTextureRect.width = 48;
+        platformTextureRect.left = 0;
+        platformTextureRect.top = 96 + 32;
+        AdvanceColider lvl6(terrain, sf::Vector2f(50.0f, 50.0f), &platformTextureRect);
+        platformsSource.push_back(lvl6);
+
+        platformTextureRect.height = 48;
+        platformTextureRect.width = 48;
+        platformTextureRect.left = 96 * 2 + 48 + 32;
+        platformTextureRect.top = 48 + 16;
+        AdvanceColider lvl7(terrain, sf::Vector2f(50.0f, 50.0f), &platformTextureRect);
+        platformsSource.push_back(lvl7);
 
         //SPIKES
         sf::Texture spikeTexture;
@@ -149,7 +281,8 @@ int main()
         //SAWS
         sf::Texture sawTexture;
         sawTexture.loadFromFile("res/Free/Traps/Saw/On (38x38).png");
-        AdvanceColider sawSource(sawTexture, 8, 0.01f, sf::Vector2f(50.0f, 50.0f));
+        AdvanceColider sawSource(sawTexture, 8, 0.01f, sf::Vector2f(30.0f, 30.0f));
+
 
         std::vector<AdvanceColider> platforms;
         std::vector<AdvanceColider> bloodbags;
@@ -161,7 +294,7 @@ int main()
 
         bool isKeyActivate = false;
 
-        LevelLoader levelloader(&player, &hp, &isKeyActivate);
+        LevelLoader levelloader(&player, &hp, &isKeyActivate, &finish, &saveManager);
 
         levelloader.setPlatforms(platformsSource, &platforms);
         levelloader.setBloodbags(bloodbagSource, &bloodbags);
@@ -176,7 +309,10 @@ int main()
     sf::Clock clock;
     float deltaTime = 0.0f;
 
+    std::stringstream newScore;
     screen screenIndex = START;
+    unsigned int level = LEVEL1;
+
     while(window.isOpen())
     {
         mainTheme.setVolume(masterVolume * 25);
@@ -201,8 +337,8 @@ int main()
 
             if(playButton.isButtonPush(&window))
             {
-                levelloader.LoadLevel(LEVEL0);
-                screenIndex = GAME; 
+                //levelloader.LoadLevel(level);
+                screenIndex = LEVELS; 
             }
             else if(settingsButton.isButtonPush(&window))
             {
@@ -218,12 +354,97 @@ int main()
             volumebar.Draw(&window);
             volumeTestButton.Draw(&window);
             backFromSettings.Draw(&window);
+            resetButton.Draw(&window);
+
+            if(resetButton.isButtonPush(&window))
+            {
+                std::ofstream file;
+                file.open("bin/save/save.txt");
+                file.close();
+            }
 
             if(backFromSettings.isButtonPush(&window))
             {
                 screenIndex = START;
             }
             volumebar.Update(&window, &masterVolume);
+
+
+            break;
+
+        case LEVELS:
+
+            level1Button.Draw(&window);
+            level1Hp.setProgress(saveManager.getHpFromLevel(0));
+            level1Hp.Draw(&window);
+            backFromSettings.Draw(&window);
+            window.draw(levelsText);
+
+            newScore.str("");
+            newScore << "Score: " << saveManager.getScore();
+            score.setString(newScore.str());
+            window.draw(score);
+
+            if(sf::Keyboard::isKeyPressed(sf::Keyboard::R))
+            {
+                levelloader.LoadLevel(level);
+                screenIndex = GAME;
+            }
+
+            if(backFromSettings.isButtonPush(&window))
+            {
+                screenIndex = START;
+            }
+
+            if(level1Button.isButtonPush(&window))
+            {
+                level = 0;
+                levelloader.LoadLevel(level);
+                screenIndex = GAME;
+            }
+
+            if(saveManager.getHpFromLevel(0) > 0.0f)
+            {
+                level2Button.Draw(&window);
+                level2Hp.setProgress(saveManager.getHpFromLevel(1));
+                level2Hp.Draw(&window);
+
+                if(level2Button.isButtonPush(&window))
+                {
+                    level = 1;
+                    levelloader.LoadLevel(level);
+                    screenIndex = GAME;
+                }
+            }
+
+            if(saveManager.getHpFromLevel(1) > 0.0f)
+            {
+                level3Button.Draw(&window);
+                level3Hp.setProgress(saveManager.getHpFromLevel(2));
+                level3Hp.Draw(&window);
+
+                if(level3Button.isButtonPush(&window))
+                {
+                    level = 2;
+                    levelloader.LoadLevel(level);
+                    screenIndex = GAME;
+                }
+            }
+
+            if(saveManager.getHpFromLevel(2) > 0.0f)
+            {
+                level4Button.Draw(&window);
+                level4Hp.setProgress(saveManager.getHpFromLevel(3));
+                level4Hp.Draw(&window);
+                window.draw(win);
+
+                if(level4Button.isButtonPush(&window))
+                {
+                    level = 3;
+                    levelloader.LoadLevel(level);
+                    screenIndex = GAME;
+                }
+            }
 
 
             break;
@@ -261,10 +482,10 @@ int main()
             {
                 b.Draw(&window, deltaTime);
 
-                if(player.colider.CheckColison(b, false))
+                if(player.colider.CheckColison(b, 0.0f))
                 {
                     hp.changeProgress(0.3f);
-                    bloodbags.erase(bloodbags.begin() + bloodbag_index);
+                    b.setPosition(-1000.0f, -1000.0f);
                     bloodBagPickUpMusic.setVolume(masterVolume * 100);
                     bloodBagPickUpMusic.stop();
                     bloodBagPickUpMusic.play();
@@ -279,7 +500,7 @@ int main()
             {
                 s.Draw(&window, deltaTime);
 
-                if(!player.isInvincible() && player.colider.CheckColison(s, false))
+                if(!player.isInvincible() && player.colider.CheckColison(s, 0.0f))
                 {
                     hurtMusic.setVolume(masterVolume * 100);
                     hurtMusic.stop();
@@ -293,7 +514,7 @@ int main()
             {
                 s.Draw(&window, deltaTime);
 
-                if(!player.isInvincible() && player.colider.CheckColison(s, false))
+                if(!player.isInvincible() && player.colider.CheckColison(s, 0.0f))
                 {
                     hurtMusic.setVolume(masterVolume * 100);
                     hurtMusic.stop();
@@ -311,6 +532,7 @@ int main()
 
                     if(player.colider.CheckColison(k, false))
                     {
+                        keyPickUpMusic.setVolume(masterVolume * 100);
                         keyPickUpMusic.stop();
                         keyPickUpMusic.play();
                         isKeyActivate = true;
@@ -337,11 +559,24 @@ int main()
 
             if(hp.getProgress() == 0.0f)
             {
-                screenIndex = START;
+                screenIndex = LEVELS;
             }
             
+            if(player.colider.CheckColison(finish, 0.0f, false))
+            {
+                saveManager.addHpToLevel(level, hp.getProgress());
+                screenIndex = LEVELS;
+                break;
+            }
+
+            if(sf::Keyboard::isKeyPressed(sf::Keyboard::R))
+            {
+                levelloader.LoadLevel(level);
+                break;
+            }
             player.Update(deltaTime);
             player.Draw(&window, deltaTime);
+            finish.Draw(&window, deltaTime);
             hp.Draw(&window);
 
             break;

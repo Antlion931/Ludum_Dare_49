@@ -9,9 +9,10 @@
 #include "LevelLoader.hpp"
 #include "Progressbar.hpp"
 #include "ColidersMover.hpp"
+#include "SaveManager.hpp"
 
-LevelLoader::LevelLoader(Player* p_player, Progressbar* p_hp, bool* p_isKeyActivate)
-: player(p_player), hp(p_hp), isKeyActivate(p_isKeyActivate), platforms(nullptr), bloodbags(nullptr), spikes(nullptr), saws(nullptr), keys(nullptr), lockedPlatforms(nullptr)
+LevelLoader::LevelLoader(Player* p_player, Progressbar* p_hp, bool* p_isKeyActivate, AdvanceColider* p_finish, SaveManager* p_saveManager)
+: player(p_player), hp(p_hp), isKeyActivate(p_isKeyActivate), finish(p_finish), saveManager(p_saveManager), platforms(nullptr), bloodbags(nullptr), spikes(nullptr), saws(nullptr), keys(nullptr), lockedPlatforms(nullptr)
 {}
 
 void LevelLoader::LoadLevel(unsigned int lvl)
@@ -30,22 +31,38 @@ void LevelLoader::LoadLevel(unsigned int lvl)
     std::stringstream FileName;
     float x, y;
 
-    switch (lvl)
-    {
-    case 0:
-        FileName.str("");
-        FileName << "bin/levels/level" << 1 + lvl << "/player.txt";
+    //PLAYER
+    FileName.str("");
+    FileName << "bin/levels/level" << 1 + lvl << "/player.txt";
 
-        f_input.open(FileName.str().c_str());
-        f_input >> x >> y;
-        
-        player -> SetPosition(x, y);
-        
-        f_input.close();
-        
-        hp->setProgress(1.0f);
-        break;
+    f_input.open(FileName.str().c_str());
+    f_input >> x >> y;
+    
+    player -> SetPosition(x, y);
+    
+    f_input.close();
+
+    //FINISH
+    FileName.str("");
+    FileName << "bin/levels/level" << 1 + lvl << "/finish.txt";
+
+    f_input.open(FileName.str().c_str());
+    f_input >> x >> y;
+    
+    finish -> setPosition(x, y);
+    
+    f_input.close();
+    
+    //HP
+    if(lvl != 0)
+    {
+        hp->setProgress(saveManager -> getHpFromLevel(lvl - 1));
     }
+    else
+    {
+        hp ->setProgress(1.0f);
+    }
+    
 
 
 

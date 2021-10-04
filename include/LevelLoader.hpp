@@ -8,11 +8,12 @@
 #include "Colider.hpp"
 #include "Progressbar.hpp"
 #include "ColidersMover.hpp"
+#include "SaveManager.hpp"
 
 class LevelLoader
 {
 public:
-    LevelLoader(Player* p_player, Progressbar* p_hp, bool* p_isKeyActivate);
+    LevelLoader(Player* p_player, Progressbar* p_hp, bool* p_isKeyActivate, AdvanceColider* p_finish, SaveManager* p_saveManager);
 
     void LoadLevel(unsigned int lvl);
     void setPlatforms( std::vector<AdvanceColider> p_platfromsSource, std::vector<AdvanceColider>* p_platforms);
@@ -27,6 +28,8 @@ private:
     Player* player;
     Progressbar* hp;
     bool* isKeyActivate;
+    AdvanceColider* finish;
+    SaveManager* saveManager;
 
     std::vector<AdvanceColider> platfromsSource;
     std::vector<AdvanceColider>* platforms;
