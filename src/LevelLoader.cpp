@@ -10,8 +10,8 @@
 #include "Progressbar.hpp"
 #include "ColidersMover.hpp"
 
-LevelLoader::LevelLoader(Player* p_player, Progressbar* p_hp)
-: player(p_player), hp(p_hp), platforms(nullptr), bloodbags(nullptr), spikes(nullptr), saws(nullptr)
+LevelLoader::LevelLoader(Player* p_player, Progressbar* p_hp, bool* p_isKeyActivate)
+: player(p_player), hp(p_hp), isKeyActivate(p_isKeyActivate), platforms(nullptr), bloodbags(nullptr), spikes(nullptr), saws(nullptr), keys(nullptr), lockedPlatforms(nullptr)
 {}
 
 void LevelLoader::LoadLevel(unsigned int lvl)
@@ -21,26 +21,39 @@ void LevelLoader::LoadLevel(unsigned int lvl)
     spikes->clear();
     saws -> clear();
     colidersmovers -> clear();
+    keys -> clear();
+    lockedPlatforms -> clear();
     player->reset();
-
-    switch (lvl)
-    {
-    case 0:
-        player->SetPosition(200.0f, 200.0f);
-        hp->setProgress(1.0f);
-        break;
-    }
-
+    *isKeyActivate = false; 
 
     std::ifstream f_input;
     std::stringstream FileName;
     float x, y;
 
+    switch (lvl)
+    {
+    case 0:
+        FileName.str("");
+        FileName << "bin/levels/level" << 1 + lvl << "/player.txt";
+
+        f_input.open(FileName.str().c_str());
+        f_input >> x >> y;
+        
+        player -> SetPosition(x, y);
+        
+        f_input.close();
+        
+        hp->setProgress(1.0f);
+        break;
+    }
+
+
+
     //PLATFORMS
     if(platforms)
     {
         FileName.str("");
-        FileName << "bin/levels/" << 1 + lvl << "terrain.txt";
+        FileName << "bin/levels/level" << 1 + lvl << "/terrain.txt";
 
         f_input.open(FileName.str().c_str());
         while (f_input >> x >> y)
@@ -55,7 +68,7 @@ void LevelLoader::LoadLevel(unsigned int lvl)
     if(bloodbags)
     {
         FileName.str("");
-        FileName << "bin/levels/" << 1 + lvl << "bloodbags.txt";
+        FileName << "bin/levels/level" << 1 + lvl << "/bloodbags.txt";
 
         f_input.open(FileName.str().c_str());
         while (f_input >> x >> y)
@@ -70,7 +83,7 @@ void LevelLoader::LoadLevel(unsigned int lvl)
     if(spikes)
     {
         FileName.str("");
-        FileName << "bin/levels/" << 1 + lvl << "spikes.txt";
+        FileName << "bin/levels/level" << 1 + lvl << "/spikes.txt";
 
         f_input.open(FileName.str().c_str());
         while (f_input >> x >> y)
@@ -85,7 +98,7 @@ void LevelLoader::LoadLevel(unsigned int lvl)
     if(saws)
     {
         FileName.str("");
-        FileName << "bin/levels/" << 1 + lvl << "saws.txt";
+        FileName << "bin/levels/level" << 1 + lvl << "/saws.txt";
 
         f_input.open(FileName.str().c_str());
         while (f_input >> x >> y)
@@ -96,11 +109,41 @@ void LevelLoader::LoadLevel(unsigned int lvl)
         f_input.close();
     }
 
+    //KEYS
+    if(keys)
+    {
+        FileName.str("");
+        FileName << "bin/levels/level" << 1 + lvl << "/keys.txt";
+
+        f_input.open(FileName.str().c_str());
+        while (f_input >> x >> y)
+        {
+            keySource.setPosition(x, y);
+            keys->push_back(keySource);
+        }
+        f_input.close();
+    }
+
+    //LOCKED PLATFORMS
+    if(lockedPlatforms)
+    {
+        FileName.str("");
+        FileName << "bin/levels/level" << 1 + lvl << "/lockedPlatforms.txt";
+
+        f_input.open(FileName.str().c_str());
+        while (f_input >> x >> y)
+        {
+            lockedPlatformSource.setPosition(x, y);
+            lockedPlatforms->push_back(lockedPlatformSource);
+        }
+        f_input.close();
+    }
+
     //COLIDER MOVERS
     if(colidersmovers)
     {
         FileName.str("");
-        FileName << "bin/levels/" << 1 + lvl << "colidermovers.txt";
+        FileName << "bin/levels/level" << 1 + lvl << "/colidermovers.txt";
 
         float beginX, beginY, endX, endY, speed;
 
@@ -126,10 +169,6 @@ void LevelLoader::LoadLevel(unsigned int lvl)
                 {
                     tmp.add(&(*platforms)[index]);
                 }
-                else if(type == "B")
-                {
-                    tmp.add(&(*bloodbags)[index]);
-                }
                 else if(type == "Sp")
                 {
                     tmp.add(&(*spikes)[index]);
@@ -137,6 +176,10 @@ void LevelLoader::LoadLevel(unsigned int lvl)
                 else if(type == "Sa")
                 {
                     tmp.add(&(*saws)[index]);
+                }
+                else if(type == "K")
+                {
+                    tmp.add(&(*keys)[index]);
                 }
             }
 
@@ -176,4 +219,16 @@ void LevelLoader::setSaws(AdvanceColider p_sawSource, std::vector<AdvanceColider
 {
     sawSource = p_sawSource;
     saws = p_saws;
+}
+
+void LevelLoader::setKeys(AdvanceColider p_keySource, std::vector<AdvanceColider>* p_keys)
+{
+    keySource = p_keySource;
+    keys = p_keys;
+}
+
+void LevelLoader::setLockedPlatforms(AdvanceColider p_lockedPlatformSource, std::vector<AdvanceColider>* p_lockedPlatforms)
+{
+    lockedPlatformSource = p_lockedPlatformSource;
+    lockedPlatforms = p_lockedPlatforms;
 }

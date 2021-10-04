@@ -40,6 +40,9 @@ int main()
     sf::Music hurtMusic;
     hurtMusic.openFromFile("res/hurt.wav");
 
+    sf::Music keyPickUpMusic;
+    keyPickUpMusic.openFromFile("res/keyPickUp.wav");
+
     //FONT
     sf::Font font;
     font.loadFromFile("res/pixel-combat-font/PixelCombat-Wajz.ttf");
@@ -127,6 +130,22 @@ int main()
         spikeTexture.loadFromFile("res/Free/Traps/Spikes/Idle.png");
         AdvanceColider spikeSource(spikeTexture, sf::Vector2f(50.0f, 50.0f), sf::Vector2f(48.0f, 20.0f), 0.0f, 15.0f);
 
+        //KEYS
+        sf::Texture keyTexture;
+        keyTexture.loadFromFile("res/key.png");
+        AdvanceColider keySource(keyTexture, sf::Vector2f(32.0f, 32.0f));
+
+        //LOCKED PLATFORMS
+        sf::Texture lockedPlatformTexture;
+        lockedPlatformTexture.loadFromFile("res/Free/Traps/Blocks/Idle.png");
+
+        sf::IntRect lockedPlatformTextureRect;
+        lockedPlatformTextureRect.height = 16;
+        lockedPlatformTextureRect.width = 16;
+        lockedPlatformTextureRect.left = 3;
+        lockedPlatformTextureRect.top = 3;
+        AdvanceColider lockedPlatformSource(lockedPlatformTexture, sf::Vector2f(50.0f, 50.0f), &lockedPlatformTextureRect);
+
         //SAWS
         sf::Texture sawTexture;
         sawTexture.loadFromFile("res/Free/Traps/Saw/On (38x38).png");
@@ -136,14 +155,20 @@ int main()
         std::vector<AdvanceColider> bloodbags;
         std::vector<AdvanceColider> spikes;
         std::vector<AdvanceColider> saws;
+        std::vector<AdvanceColider> keys;
+        std::vector<AdvanceColider> lockedPlatforms;
         std::vector<ColidersMover> colidersmovers;
 
-        LevelLoader levelloader(&player, &hp);
+        bool isKeyActivate = false;
+
+        LevelLoader levelloader(&player, &hp, &isKeyActivate);
 
         levelloader.setPlatforms(platformsSource, &platforms);
         levelloader.setBloodbags(bloodbagSource, &bloodbags);
         levelloader.setSpikes(spikeSource, &spikes);
         levelloader.setSaws(sawSource, &saws);
+        levelloader.setKeys(keySource, &keys);
+        levelloader.setLockedPlatforms(lockedPlatformSource, &lockedPlatforms);
         levelloader.setColidersMovers(&colidersmovers);
 
         
@@ -259,7 +284,7 @@ int main()
                     hurtMusic.setVolume(masterVolume * 100);
                     hurtMusic.stop();
                     hurtMusic.play();
-                    hp.changeProgress(-0.2f);
+                    hp.changeProgress(-0.1f);
                     player.setInvincible();
                 }
             }
@@ -273,16 +298,48 @@ int main()
                     hurtMusic.setVolume(masterVolume * 100);
                     hurtMusic.stop();
                     hurtMusic.play();
-                    hp.changeProgress(-0.2f);
+                    hp.changeProgress(-0.4f);
                     player.setInvincible();
                 }
+            }
+
+            if(!isKeyActivate)
+            {
+                for(AdvanceColider& k : keys)
+                {
+                    k.Draw(&window, deltaTime);
+
+                    if(player.colider.CheckColison(k, false))
+                    {
+                        keyPickUpMusic.stop();
+                        keyPickUpMusic.play();
+                        isKeyActivate = true;
+                    }
+                }
+
+                for(AdvanceColider& l : lockedPlatforms)
+                {
+                    player.colider.CheckColison(l, 0.0f);
+                    if(player.groundColider.CheckColison(l, 0.0f, false))
+                    {
+                        player.setIsOnGround(true);
+                    }
+
+                    if(player.ceilingColider.CheckColison(l, 0.0f, false))
+                    {
+                        player.hitCeiling();
+                    }
+                    l.Draw(&window, deltaTime);
+                }
+
+
             }
 
             if(hp.getProgress() == 0.0f)
             {
                 screenIndex = START;
             }
-
+            
             player.Update(deltaTime);
             player.Draw(&window, deltaTime);
             hp.Draw(&window);
